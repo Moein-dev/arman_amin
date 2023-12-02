@@ -34,17 +34,31 @@ class OnlineUsersBloc extends Bloc<OnlineUsersEvent, OnlineUsersState> {
           ));
         }
 
-        DataState result = await onlineUserUsecase(
+        DataState<List<OnlineUserEntity>> result = await onlineUserUsecase(
           offset: event.offset,
           limit: event.limit,
         );
 
         if (result is DataSuccess) {
+          emit(
+            state.copyWith(
+              newOffsetUsers: state.offsetUsers + 10,
+            ),
+          );
+          List<OnlineUserEntity> users = [];
+          if (state.usersStatus is EventLoadMore) {
+            users.addAll(state.usersStatus.data!);
+          }
+          users.addAll(result.data!);
           return emit(
             state.copyWith(
-              newUsersStatus: EventCompleted(
-                result.data,
-              ),
+              newUsersStatus: result.data!.isEmpty
+                  ? EventNoMoreData(
+                      data: users,
+                    )
+                  : EventCompleted(
+                      users,
+                    ),
             ),
           );
         } else {

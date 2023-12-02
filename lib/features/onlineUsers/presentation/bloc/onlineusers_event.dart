@@ -17,3 +17,4 @@ class GetUsersEvent extends OnlineUsersEvent {
         limit,
       ];
 }
+

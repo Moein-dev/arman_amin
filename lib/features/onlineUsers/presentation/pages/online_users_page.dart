@@ -28,6 +28,17 @@ class OnlineUserPage extends StatelessWidget {
         offset: onlineUserBloc.state.offsetUsers,
       );
     }
+
+    controller.addListener(() {
+      if ((controller.offset >= (controller.position.maxScrollExtent - 40)) &&
+          onlineUserBloc.state.usersStatus is! EventNoMoreData) {
+        getUsers(
+          context,
+          offset: onlineUserBloc.state.offsetUsers,
+        );
+      }
+    });
+
     return SafeArea(
       child: Scaffold(
         extendBodyBehindAppBar: false,
@@ -38,18 +49,42 @@ class OnlineUserPage extends StatelessWidget {
             return EventStatusLayout(
               status: state.usersStatus,
               onCompletedStatus: (context, data) {
-                return ListView.builder(
-                  controller: controller,
-                  itemCount: data!.length,
-                  physics: const BouncingScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    var user = data[index];
-                    return OnlineUserCard(
-                      name: "${user.firstName ?? ""} ${user.lastName ?? ""}",
-                      avatar: user.profilePicture,
-                      phone: user.phone,
-                    );
-                  },
+                return Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        controller: controller,
+                        itemCount: data!.length,
+                        physics: const BouncingScrollPhysics(),
+                        itemBuilder: (context, index) {
+                          var user = data[index];
+                          return OnlineUserCard(
+                            name:
+                                "${user.firstName ?? ""} ${user.lastName ?? ""}",
+                            avatar: user.profilePicture,
+                            phone: user.phone,
+                          );
+                        },
+                      ),
+                    ),
+                    if (state.usersStatus is EventLoadMore)
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 10),
+                        width: 20,
+                        height: 20,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      ),
+                    if (state.usersStatus is EventNoMoreData)
+                      const Center(
+                        child: Text(
+                          "No more User to load",
+                        ),
+                      )
+                  ],
                 );
               },
               onErrorStatus: (error) {
