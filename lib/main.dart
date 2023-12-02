@@ -1,6 +1,27 @@
-import 'package:flutter/material.dart';
+// ignore_for_file: depend_on_referenced_packages
 
-void main() {
+import 'package:arman_amin/core/database/local_storage.dart';
+import 'package:arman_amin/features/onlineUsers/presentation/bloc/onlineusers_bloc.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:arman_amin/core/dependencies/locator.dart';
+import 'package:arman_amin/core/router/app_router.dart';
+import 'package:arman_amin/features/home/presentation/bloc/home_bloc.dart';
+import 'package:arman_amin/features/main/presentation/cubit/main_cubit.dart';
+import 'package:arman_amin/features/result/presentation/bloc/result_bloc.dart';
+
+import 'package:flutter_web_plugins/url_strategy.dart';
+
+void main() async {
+  // initial storage
+  await StorageBoxes.initial();
+
+  // initial service locator
+  await setup();
+
+  usePathUrlStrategy();
+
+  // run app
   runApp(const MyApp());
 }
 
@@ -9,60 +30,32 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Arman Amin Test',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (mainContext) => locator<MainCubit>(),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        BlocProvider(
+          create: (homeContext) => locator<HomeBloc>(),
+        ),
+        BlocProvider(
+          create: (resultContext) => locator<ResultBloc>(),
+        ),
+        BlocProvider(
+          create: (onlineUserContext) => locator<OnlineUsersBloc>(),
+        ),
+      ],
+      child: MaterialApp.router(
+        routerConfig: AppRouter.router,
+        /* 
+        routeInformationParser: AppRouter.router.routeInformationParser,
+        routerDelegate: AppRouter.router.routerDelegate, */
+        debugShowCheckedModeBanner: false,
+        title: 'ArmanAmin Test',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff0E53D9)),
+          useMaterial3: true,
+        ),
       ),
     );
   }
